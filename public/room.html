@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Texting App</title>
-    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet" />
     <style>
         body{
             margin: 0;
@@ -17,7 +17,7 @@
             align-items: center;
             width: 100%;
             height: 100vh;
-            background-image: url(https://media.giphy.com/media/KZFrf9JusXzmpnPsT6/giphy.gif);
+            background-image: url(https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1567&q=80);
             background-size: cover;
         }
 
@@ -95,31 +95,31 @@
         .text-box{
             display: flex;
             position: relative;
-            flex-direction: column;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: row;
             width: fit-content;
-            left: 0;
-            margin: 5px;
-            padding: 6px;
+            height: auto;
+            flex-wrap: wrap;
+            margin: 20px;
+            padding: 10px;
+            word-wrap: break-word;
             color: white;
             background-color: #1B1A1B;
+            font-weight: bold;
+            border-radius: 200px;
         }
 
         .flash-msg{
-            padding: 5px;
+            padding: 10px;
             position: relative;
-            left: 5px;
+            margin: 20px;
             color: white;
+            border-radius: 200px;
             width: fit-content;
             background-color: #1B1A1B;
         }
 
         .author{
-            position: relative;
-            left: 3px;
-            width: fit-content;
-            font-size: small;
+            margin-right: 5px;
             font-weight: bold;
         }
     </style>
@@ -136,133 +136,6 @@
             </div>
         </div>
     </div>
-    <script>
-
-        const url = window.location.origin.replace(/^http/,'ws')
-        const {roomId , userId} = getDetails()
-        var ws = new WebSocket(url)
-        console.log(roomId+" "+userId)
-
-        function getDetails(){
-            const params = window.location.href.substring(window.location.origin.length+2).split('/')
-            return {roomId: params[1], userId: params[2]}
-        }
-
-        ws.onopen=()=>{
-            console.log("connected")
-            send({type:"join-room" , roomId, userId})
-        }
-
-        async function send(message) { 
-            console.log(message)
-            await ws.send(JSON.stringify(message)); 
-        };
-
-
-        document.getElementById("send").addEventListener("click",handleMsg)
-        document.addEventListener("keypress",(e)=>e.keyCode==13?handleMsg():null)
-        document.getElementById("leave").addEventListener("click",handleDisconnect)
-
-        function handleMsg(){
-            const text = document.getElementById("msg").value
-            if(text){
-                send({type:"send-text" , text, roomId, userId})
-                displayLocalText(userId,text)
-                handleScroll()
-            }
-        }
-
-        function handleDisconnect(){
-                send({type:"leave-room" ,roomId ,userId})
-                window.location.href = window.location.origin + "/start"
-        }
-
-        function displayConnectedUsers(rid,uids){
-            uids.forEach(uid => {
-                if(document.querySelector(`.users #${uid}`)==null){
-                    const ele = document.createElement('div')
-                    ele.id = uid
-                    ele.className="user"
-                    ele.innerHTML += `<span class="material-icons">person</span><br/><span>${uid}</span>`
-                    document.querySelector(".users").appendChild(ele)
-                    if(uid!==userId) flashJoin(uid)
-                }
-            });
-        }
-
-        function flashJoin(uid){
-            const ele = document.createElement("p")
-            ele.innerHTML = `${uid} jonied`
-            ele.className = "flash-msg"
-            ele.style.color="green"
-            document.querySelector(".textarea").appendChild(ele)
-            handleScroll()
-        }
-
-        function flashDisconnect(uid){
-            const ele = document.createElement("p")
-            ele.innerHTML = `${uid} left`
-            ele.className = "flash-msg"
-            ele.style.color="red"
-            document.querySelector(".textarea").appendChild(ele)
-            handleScroll()
-        }
-
-        function displayLocalText(uid,text){
-            const ele = document.createElement('div')
-            ele.className = "text-box"
-            ele.innerHTML += `<span class="author">${uid+": "}</span><p>${text}</p>`
-            document.querySelector(".textarea").appendChild(ele)
-        }
-
-        function displayRecievedText(uid,text){
-            const ele = document.createElement('div')
-            ele.className = "text-box"
-            ele.innerHTML += `<span class="author">${uid+": "}</span><p>${text}</p>`
-            document.querySelector(".textarea").appendChild(ele)
-            handleScroll()
-        }
-
-        function handleDisconnectedUser(uid){
-            if(document.querySelector(`.users #${uid}`)){
-                document.querySelector(".users").removeChild(document.querySelector(`.users #${uid}`))
-                flashDisconnect(uid)
-            }
-        }
-
-        function handleScroll(){
-            document.querySelector(".textarea").scrollTo(0,document.querySelector(".textarea").scrollHeight)
-        }
-
-        ws.onmessage = (data) =>{
-            const msg = JSON.parse(data.data)
-            try{
-                if(msg.type==="entered-room"){
-                    const {allUsers} = msg
-                    displayConnectedUsers(roomId,allUsers)
-                }
-
-                else if(msg.type==="created-room"){
-                    displayConnectedUsers(roomId,[userId])
-                }
-
-                else if(msg.type==="recieved-text"){
-                    const {userId, text} = msg
-                    console.log("recieved"+msg)
-                    displayRecievedText(userId,text)
-                }
-
-                else if(msg.type==="user-left"){
-                    const {userId} = msg
-                    handleDisconnectedUser(userId)
-                }
-            }
-            catch(err){
-                console.log(err)
-            }
-        }
-    </script>
-
+    <script src="../../room_script.js"></script>
 </body>
-
 </html>
